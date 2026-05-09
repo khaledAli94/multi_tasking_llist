@@ -110,16 +110,6 @@ void iterate_backward(struct task_t *start)
 
 ## Runqueue-Level Control
 
-In `sched.c`, the scheduler maintains a reference to the global task list.
-
-```c
-static struct task_t *__tlist = NULL;
-
-struct task_t *get_tlist(void) { return __tlist; }
-void set_tlist(struct task_t *t) { __tlist = t; }
-
-```
-
 ### 7. add_to_runqueue
 
 Adds a task to the global scheduler ring.
