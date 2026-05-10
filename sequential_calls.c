@@ -42,7 +42,7 @@ void task2(void *arg)
 
 int main(void)
 {
-    init_sched();
+    // init_sched();
 
     void *stk1 = malloc(2048);
     void *stk2 = malloc(2048);
@@ -104,7 +104,6 @@ static inline void append_task(struct task_t *t)
     }
 }
 
-/* sched.c */
 
 static void task_entry_trampoline(void)
 {
@@ -130,8 +129,6 @@ struct task_t *create_task(const char *name, void *stack_mem, size_t stk_sz, voi
     uint8_t *stack_top = (uint8_t *)stack_mem + stk_sz;
     stack_top = (uint8_t *)((uintptr_t)stack_top & ~7UL);
 
-    // 5. Carve out space for our context frame
-    //    We push a cpu_ctx onto the stack manually
     stack_top -= sizeof(struct cpu_ctx);
     struct cpu_ctx *frame = (struct cpu_ctx *)stack_top;
 
@@ -156,8 +153,7 @@ void yield(void) {
     struct task_t *curr = __tlist;
     struct task_t *next = curr->next;
     
-    __tlist = next; // Set the new active task
+    __tlist = next; 
     
-    // Pass the actual addresses of the context pointers
     switch_fcontext(&curr->context, next->context);
 }
