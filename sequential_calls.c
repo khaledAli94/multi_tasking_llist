@@ -39,16 +39,27 @@ void task2(void *arg)
     int z = x*y;
 }
 
+void task3(void *arg)
+{
+    struct task_pdat_t *pdat = arg;
+    pdat->val++;
+
+    int x = 4;
+    int y = 5;
+    int z = x+y;
+}
 
 int main(void)
 {
-    // init_sched();
+    init_sched();
 
     void *stk1 = malloc(2048);
     void *stk2 = malloc(2048);
+    void *stk3 = malloc(2048);
 
     struct task_t *t1 = create_task("task1", stk1, 2048, task1, &t1_pdat);
     struct task_t *t2 = create_task("task2", stk2, 2048, task2, &t2_pdat);
+    struct task_t *t3 = create_task("task3", stk3, 2048, task3, &t3_pdat);
 
 
     while (1) yield();
