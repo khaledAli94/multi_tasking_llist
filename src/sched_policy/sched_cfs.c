@@ -56,7 +56,13 @@ static void cfs_dequeue(struct task_t *t)
 
 static void cfs_tick(struct task_t *current)
 {
-    (void)current;
+    current->vruntime += SCHED_TICK_MS;
+
+    struct task_t *best = find_min_vruntime(which_sched()->running);
+
+    if (best != current && best->vruntime < current->vruntime) {
+        preempt();
+    }
 }
 
 const struct sched_ops sched_ops_cfs = {

@@ -10,7 +10,10 @@
 #include "malloc.h"
 
 static const struct sched_ops *policy_table[] = {
+    [SCHED_RR]       = &sched_ops_rr,
+    [SCHED_PRIORITY] = &sched_ops_priority,
     [SCHED_CFS]      = &sched_ops_cfs,
+    [SCHED_EDF]      = &sched_ops_edf,
 };
 
 #define NUM_POLICIES (sizeof(policy_table) / sizeof(policy_table[0]))
@@ -68,6 +71,10 @@ void sched_set_policy(enum sched_policy_t policy)
 }
 
 void yield(void) {
+    unsigned irq_state;
+
+    __asm__ volatile("MRS %0, cpsr \n" "CPSID if  \n": "=r"(irq_state) : : "memory" );
+
     struct task_t *curr = __sched->running;
     struct task_t *next =__sched->ops->pick_next(curr);
 
@@ -85,18 +92,23 @@ void yield(void) {
         /* only one task in the ring - restamp and stay */
         curr->start_time  = now_vct;
         curr->cycle_start = now_cyc;
+        __asm__ volatile("MSR cpsr_c, %0 \n" : : "r"(irq_state) : "memory" );
         return;
     }
 
     __sched->running  = next;
-    next->start_time  = now_vct;
-    next->cycle_start = now_cyc;
-
     // Update 'next' start stamps before switching
     next->start_time  = now_vct;
     next->cycle_start = now_cyc;
 
+    __asm__ volatile("MSR cpsr_c, %0 \n" : : "r"(irq_state) : "memory" );
+
     switch_fcontext(&curr->context, next->context);
+}
+
+void preempt(void)
+{
+    __sched->running->preempt_count++;
 }
 
 void sched_tick(void)

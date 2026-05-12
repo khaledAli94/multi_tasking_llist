@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 #define SCHED_TICK_MS 1U
-
+/* 36 byte */
 struct cpu_ctx {
     uint32_t r4;
     uint32_t r5;
@@ -45,6 +45,7 @@ struct task_t {
 
     uint64_t vruntime;  /* CFS needs this */
     uint32_t priority; /* priority scheduling needs this */
+    uint32_t deadline; /* edf scheduling needs this */
 
     uint32_t preempt_count;
     uint32_t yield_count;   
@@ -99,6 +100,9 @@ void sched_spin(void);
 
 
 extern const struct sched_ops sched_ops_cfs;
+extern const struct sched_ops sched_ops_rr;
+extern const struct sched_ops sched_ops_priority;
+extern const struct sched_ops sched_ops_edf;
 
 #ifdef __cplusplus
 }
