@@ -1,4 +1,4 @@
-/* 68 byte */
+/* 60 byte */
 struct cpu_ctx_t {
     uint32_t cpsr;
     uint32_t r0;
@@ -16,6 +16,7 @@ struct cpu_ctx_t {
     uint32_t r12;
     uint32_t lr;        // callee saved
 };
+_Static_assert(sizeof(struct cpu_ctx_t) == 60, "cpu_ctx_t size wrong");
 
 .globl switch_fcontext
 .type switch_fcontext, %function
