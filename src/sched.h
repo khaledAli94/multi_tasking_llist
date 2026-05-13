@@ -10,7 +10,7 @@ extern "C" {
 
 #define SCHED_TICK_MS 1U
 /* 36 byte */
-struct cpu_ctx {
+struct cpu_ctx_t {
     uint32_t r4;
     uint32_t r5;
     uint32_t r6;
