@@ -48,6 +48,9 @@ static void task_entry_trampoline(void)
 
 struct task_t *create_task(const char *name, void *stack_mem, size_t stk_sz, void (*func)(void *), void *arg)
 {
+    unsigned irq_state;
+    __asm__ volatile("MRS %0, cpsr\n CPSID if" : "=r"(irq_state) :: "memory");
+
     struct task_t *t = malloc(sizeof(struct task_t));
 
     t->name       = strdup(name);
@@ -76,19 +79,26 @@ struct task_t *create_task(const char *name, void *stack_mem, size_t stk_sz, voi
     stack_top -= sizeof(struct cpu_ctx_t); // reserve 36 byte
     struct cpu_ctx_t *frame = (struct cpu_ctx_t *)stack_top;
 
-    frame->r4 = 0xdeadbeef;
-    frame->r5 = 0xdeadbeef;
-    frame->r6 = 0xdeadbeef;
-    frame->r7 = 0xdeadbeef;
-    frame->r8 = 0xdeadbeef;
-    frame->r9 = 0xdeadbeef;
-    frame->r10 = 0xdeadbeef;
-    frame->r11 = 0xdeadbeef;
-    frame->lr = (uint32_t)task_entry_trampoline;
-
+    frame->r0   = 0xdeadbeef;
+    frame->r1   = 0xdeadbeef;
+    frame->r2   = 0xdeadbeef;
+    frame->r3   = 0xdeadbeef;
+    frame->r4   = 0xdeadbeef;
+    frame->r5   = 0xdeadbeef;
+    frame->r6   = 0xdeadbeef;
+    frame->r7   = 0xdeadbeef;
+    frame->r8   = 0xdeadbeef;
+    frame->r9   = 0xdeadbeef;
+    frame->r10  = 0xdeadbeef;
+    frame->r11  = 0xdeadbeef;
+    frame->r12  = 0xdeadbeef;
+    frame->lr   = (uint32_t)task_entry_trampoline;
+    frame->pc   = (uint32_t)task_entry_trampoline;
+    frame->cpsr = 0x13;             /* SVC mode, IRQs enabled */
 
     t->context = stack_top;
 
     append_task(t);
+    __asm__ volatile("MSR cpsr_cxsf, %0" :: "r"(irq_state) : "memory");
     return t;
 }

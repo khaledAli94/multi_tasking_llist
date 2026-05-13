@@ -28,23 +28,13 @@ static struct task_t *find_min_vruntime(struct task_t *head)
 
 static struct task_t *cfs_pick_next(struct task_t *current)
 {
-    /*
-     * Charge current task for time it just used
-     * then pick whoever has the least vruntime
-     */
-    uint64_t now       = cp15_read_cntvct();
-    uint64_t delta     = now - current->start_time;
-    current->vruntime += delta;
-
+    /* pure selection — no charging here */
     return find_min_vruntime(which_sched()->running);
 }
 
 static void cfs_enqueue(struct task_t *t)
 {
-    /*
-     * Give new task the current minimum vruntime
-     * so it runs soon but does not starve others
-     */
+    /* start new task at current minimum so it runs soon */
     struct task_t *min = find_min_vruntime(which_sched()->running);
     t->vruntime = min->vruntime;
 }
@@ -56,13 +46,10 @@ static void cfs_dequeue(struct task_t *t)
 
 static void cfs_tick(struct task_t *current)
 {
-    current->vruntime += SCHED_TICK_MS;
-
-    struct task_t *best = find_min_vruntime(which_sched()->running);
-
-    if (best != current && best->vruntime < current->vruntime) {
-        preempt();
-    }
+    /* charge real elapsed time in counter units (24MHz) */
+    uint64_t now   = cp15_read_cntvct();
+    uint64_t delta = now - current->start_time;
+    current->vruntime += delta;
 }
 
 const struct sched_ops sched_ops_cfs = {

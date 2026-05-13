@@ -9,18 +9,27 @@ extern "C" {
 #endif
 
 #define SCHED_TICK_MS 1U
-/* 36 byte */
+
 struct cpu_ctx_t {
-    uint32_t r4;
-    uint32_t r5;
-    uint32_t r6;
-    uint32_t r7;
-    uint32_t r8;
-    uint32_t r9;
-    uint32_t r10;
-    uint32_t r11;
-    uint32_t lr;
+    uint32_t r0;     /* sp+0  : push {r0-r12,lr} stores r0 here  */
+    uint32_t r1;     /* sp+4                                      */
+    uint32_t r2;     /* sp+8                                      */
+    uint32_t r3;     /* sp+12                                     */
+    uint32_t r4;     /* sp+16                                     */
+    uint32_t r5;     /* sp+20                                     */
+    uint32_t r6;     /* sp+24                                     */
+    uint32_t r7;     /* sp+28                                     */
+    uint32_t r8;     /* sp+32                                     */
+    uint32_t r9;     /* sp+36                                     */
+    uint32_t r10;    /* sp+40                                     */
+    uint32_t r11;    /* sp+44                                     */
+    uint32_t r12;    /* sp+48                                     */
+    uint32_t lr;     /* sp+52 : lr of interrupted task            */
+    uint32_t pc;     /* sp+56 : srsdb pushed lr_irq (= task PC)  */
+    uint32_t cpsr;   /* sp+60 : srsdb pushed spsr_irq            */
 };
+
+_Static_assert(sizeof(struct cpu_ctx_t) == 64, "wrong size");
 
 struct task_t {
     const char *name;
@@ -95,7 +104,11 @@ struct task_t *create_task(const char *name, void *stack_mem, size_t stk_sz, voi
 void switch_task(void);
 
 void yield(void);
+
+uint32_t *irq_preempt(uint32_t *curr_sp);
+
 void preempt(void);
+void sched_tick(void*); // we will see its visiblty to other src 
 void sched_spin(void);
 
 

@@ -9,14 +9,22 @@
 #include "string.h"
 #include "malloc.h"
 
+#define RR_TIMESLICE_TICKS  10   /* 10 timer ticks per slice */
+
 static struct task_t *rr_pick_next(struct task_t *current)
 {
-    return current->next;
+    /* RR: always next in ring
+     * irq_preempt decides whether to actually switch
+     * based on whether timeslice expired (vruntime used as counter)
+     */
+    if (current->vruntime == 0)
+        return current->next;   /* timeslice expired → next task  */
+    return current;             /* still has time → stay          */
 }
 
 static void rr_enqueue(struct task_t *t)
 {
-    (void)t;
+    t->vruntime = RR_TIMESLICE_TICKS;   /* fresh timeslice on entry */
 }
 
 static void rr_dequeue(struct task_t *t)
@@ -26,12 +34,10 @@ static void rr_dequeue(struct task_t *t)
 
 static void rr_tick(struct task_t *current)
 {
-    if (current->preempt_count == 0) {
-        current->preempt_count = SCHED_TICK_MS * 10;
-        preempt();
-        return;
-    }
-    current->preempt_count--;
+    /* count down timeslice */
+    if (current->vruntime > 0)
+        current->vruntime--;
+    /* when vruntime hits 0, pick_next will return current->next */
 }
 
 const struct sched_ops sched_ops_rr = {

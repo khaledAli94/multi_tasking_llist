@@ -13,11 +13,11 @@ static struct task_t *find_highest_priority(struct task_t *head)
 {
     struct task_t *t    = head;
     struct task_t *best = head;
-    uint32_t       min  = head->priority;
+    uint32_t       max  = head->priority;
 
     do {
-        if (t->priority < min) {
-            min  = t->priority;
+        if (t->priority > max) {
+            max  = t->priority;
             best = t;
         }
         t = t->next;
@@ -43,15 +43,12 @@ static void priority_dequeue(struct task_t *t)
 
 static void priority_tick(struct task_t *current)
 {
-    struct task_t *best = find_highest_priority(which_sched()->running);
-
-    if (best->priority < current->priority) {
-        preempt();
-    }
+    /* nothing to update — priority is static */
+    (void)current;
 }
 
 const struct sched_ops sched_ops_priority = {
-    .name      = "fixed-priority",
+    .name      = "priority",
     .policy    = SCHED_PRIORITY,
     .pick_next = priority_pick_next,
     .enqueue   = priority_enqueue,
