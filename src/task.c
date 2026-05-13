@@ -74,7 +74,7 @@ struct task_t *create_task(const char *name, void *stack_mem, size_t stk_sz, voi
     stack_top = (uint8_t *)((uintptr_t)stack_top & ~7UL);
 
     stack_top -= sizeof(struct cpu_ctx); // reserve 36 byte
-    struct cpu_ctx *frame = (struct cpu_ctx *)stack_top;
+    struct cpu_ctx_t *frame = (struct cpu_ctx_t *)stack_top;
 
     frame->r4 = 0xdeadbeef;
     frame->r5 = 0xdeadbeef;
