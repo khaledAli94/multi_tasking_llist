@@ -1,0 +1,30 @@
+static int cmd_ps(int argc, char **argv)
+{
+    (void)argc; (void)argv;
+
+    struct scheduler_t *sched = which_sched();
+    struct task_t *t = sched->running;
+
+    if (!t) {
+        printf("no tasks\n");
+        return 0;
+    }
+
+    printf("%-12s %8s %8s %8s %8s\n",
+           "name", "vruntime", "cycles", "yields", "preempts");
+
+    struct task_t *start = t;
+    do {
+        printf("%-12s %8llu %8llu %8u %8u\n",
+               t->name,
+               (unsigned long long)t->vruntime,
+               (unsigned long long)t->cycles_used,
+               t->yield_count,
+               t->preempt_count);
+        t = t->next;
+    } while (t != start);
+
+    return 0;
+}
+
+/*   command_register("ps", "ps -list tasks", cmd_ps); */
