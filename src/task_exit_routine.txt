@@ -103,6 +103,30 @@ static void task_entry_trampoline(void)
 //     }
 // }
 
+
+static uint64_t sched_account_out(struct task_t *curr)
+{
+    uint64_t now_vct  = cp15_read_cntvct();
+    uint32_t now_cyc  = cp15_read_pmccntr();
+
+    curr->v_accum     += (now_vct - curr->start_time);
+    curr->cycles_used += (uint32_t)(now_cyc - curr->cycle_start);
+
+    return now_vct;
+}
+
+/*
+ * sched_account_in - stamp a task that is GETTING the cpu.
+ *
+ * Call with IRQs disabled.
+ */
+static void sched_account_in(struct task_t *next, uint64_t now_vct)
+{
+    uint32_t now_cyc   = cp15_read_pmccntr();
+    next->start_time   = now_vct;
+    next->cycle_start  = now_cyc;
+}
+
 struct task_t *create_task(const char *name, void *stack_mem, size_t stk_sz, void (*func)(void *), void *arg)
 {
     unsigned irq_state;
