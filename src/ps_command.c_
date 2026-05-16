@@ -10,8 +10,7 @@ static int cmd_ps(int argc, char **argv)
         return 0;
     }
 
-    printf("%-12s %8s %8s %8s %8s\n",
-           "name", "vruntime", "cycles", "yields", "preempts");
+    printf("%-12s %8s %8s %8s %8s\n", "name", "vruntime", "cycles", "yields", "preempts");
 
     struct task_t *start = t;
     do {
@@ -19,8 +18,7 @@ static int cmd_ps(int argc, char **argv)
                t->name,
                (unsigned long long)t->vruntime,
                (unsigned long long)t->cycles_used,
-               t->yield_count,
-               t->preempt_count);
+               t->yield_count, t->preempt_count);
         t = t->next;
     } while (t != start);
 
