@@ -24,11 +24,15 @@ static struct task_t *find_highest_priority(struct task_t *head)
     } while (t != head);
 
     return best;
+    /*
+     * idle->priority = 0 — always loses naturally.
+     * No idle check needed.
+     */
 }
 
 static struct task_t *priority_pick_next(struct task_t *current)
 {
-    return find_highest_priority(which_sched()->running);
+    return find_highest_priority(current);
 }
 
 static void priority_enqueue(struct task_t *t)
@@ -43,7 +47,6 @@ static void priority_dequeue(struct task_t *t)
 
 static void priority_tick(struct task_t *current)
 {
-    /* nothing to update — priority is static */
     (void)current;
 }
 

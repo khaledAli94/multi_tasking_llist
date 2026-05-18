@@ -2,9 +2,10 @@
 #include "mutex.h"
 #include <sched.h>
 
-/*
+/* KERNEL PRIMITIVES
  * Mutex — single CPU, cooperative multitasking.
- *
+ * The atomicity comes from disabling IRQs:
+
  * Rule:
  *   - Never hold a mutex across yield() if another task needs it.
  *   - Never use mutex from inside an IRQ handler.
@@ -72,6 +73,7 @@ void mutex_lock(struct mutex_t *m)
 
 void mutex_unlock(struct mutex_t *m)
 {
+    __asm__ volatile("dmb" ::: "memory");
     /*
      * Simple store — no atomic needed on single CPU.
      * IRQ cannot fire between our check and store

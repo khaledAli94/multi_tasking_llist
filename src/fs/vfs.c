@@ -76,11 +76,6 @@ int vfs_mount(const char *path, struct fs_driver_t *driver, void *prv)
     return 0;
 }
 
-/* ------------------------------------------------------------------ */
-/* open                                                                 */
-/* THE FIX: pass relative path to driver via vn->prv                   */
-/* ------------------------------------------------------------------ */
-
 int vfs_open(const char *path, struct vnode_t *vn, int flags)
 {
     struct mount_t *mp = find_mount(path);
@@ -123,28 +118,16 @@ int vfs_write(struct vnode_t *vn, const void *buf, size_t size, size_t off)
 
 int vfs_mkdir(const char *path)
 {
-    char resolved[VFS_MAX_PATH];
-
-    if (shell_resolve_path(path, resolved, sizeof(resolved)) < 0) {
-        printf("mkdir: cannot resolve path\n");
+    struct mount_t *mp = find_mount(path);
+    if (!mp)
         return -1;
-    }
 
-    struct mount_t *mp = find_mount(resolved);
-    if (!mp) {
-        printf("mkdir: no filesystem at path\n");
+    if (!mp->driver->mkdir)
         return -1;
-    }
 
-    if (!mp->driver->mkdir) {
-        printf("mkdir: filesystem '%s' does not support mkdir\n", mp->driver->name);
-        return -1;
-    }
-
-    const char *rel = strip_mount(resolved, mp);
+    const char *rel = strip_mount(path, mp);
     return mp->driver->mkdir(mp, rel);
 }
-
 
 int vfs_readdir(struct vnode_t *vn, int idx, char *name_out)
 {

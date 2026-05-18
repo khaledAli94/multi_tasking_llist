@@ -24,17 +24,20 @@ static struct task_t *find_earliest_deadline(struct task_t *head)
     } while (t != head);
 
     return best;
+    /*
+     * idle->deadline = UINT32_MAX — always loses naturally.
+     * No idle check needed.
+     */
 }
 
 static struct task_t *edf_pick_next(struct task_t *current)
 {
-    return find_earliest_deadline(which_sched()->running);
+    return find_earliest_deadline(current);
 }
 
 static void edf_enqueue(struct task_t *t)
 {
     (void)t;
-    /* caller must set t->deadline before or after create_task */
 }
 
 static void edf_dequeue(struct task_t *t)
@@ -44,11 +47,10 @@ static void edf_dequeue(struct task_t *t)
 
 static void edf_tick(struct task_t *current)
 {
-    /* check for deadline miss — log only, no preempt() call */
     uint64_t now = cp15_read_cntvct();
-    if (current->deadline != 0 && (uint64_t)current->deadline < now) {
-        /* deadline missed — irq_preempt will pick earliest deadline */
-        (void)current;
+    if (current->deadline != UINT32_MAX &&
+        (uint64_t)current->deadline < now) {
+        /* deadline missed — log here if needed */
     }
 }
 
